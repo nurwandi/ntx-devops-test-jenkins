@@ -1,5 +1,9 @@
 #!/bin/bash
 
+command_exists() {
+    command -v "$1" >/dev/null 2>&1
+}
+
 NODE_APP_DIRECTORY="$WORKSPACE/nurwandi-ntx-devops-test"
 
 pwd
@@ -7,24 +11,32 @@ pwd
 cd "$NODE_APP_DIRECTORY" || exit
 echo "Now inside the directory: $NODE_APP_DIRECTORY"
 
-sudo yum update -y
-sudo yum install -y curl
+sudo apt update -y
+sudo apt install -y curl
 
-echo "Install Node.js"
-if command -v node &> /dev/null; then
-  echo "Node.js is installed. Skip installation."
-  nvm install 16
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # Ini memuat nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # Memuat nvm bash_completion
+
+if command_exists nvm && command_exists node && command_exists npm; then
+    echo "NVM, Node.js, and NPM are already installed. Skipping installation."
+    echo "Node.js version: $(node -v)"
+    echo "NPM version: $(npm -v)"
 else
-  echo "Node.js is not found. Continue the installation..."
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
-  source ~/.bashrc
-  nvm install node
-  nvm install 16
-  node -v 
-  npm -v
-fi
+    echo "Starting Node.js installation..."
+    
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash
 
-echo "Testing the local app..."
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+    nvm install node
+    nvm install 16
+    nvm use 16
+
+    echo "Node.js version: $(node -v)"
+    echo "NPM version: $(npm -v)"
+fi
 
 npm start &
 sleep 5
